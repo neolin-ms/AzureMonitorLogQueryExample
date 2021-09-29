@@ -1,6 +1,6 @@
 # Azure Monitor Log Query Example
 
-## Get a CPU count for your machines
+## 1.1 Get a CPU count for your machines
 ```bash
 Perf
 | where TimeGenerated >= ago(1h)
@@ -11,7 +11,7 @@ Perf
 | summarize dcount(InstanceName) by Computer
 ```
 
-## Find High CPU of Virtual Machines
+## 1.2 Find High CPU of Virtual Machines
 ```bash
 Perf
 | where CounterName == "% Processor Time"
@@ -21,7 +21,7 @@ Perf
 | distinct Computer
 ```
 
-## Check the Processor time of Virtual Machines
+## 1.3 Check the Processor time of Virtual Machines
 ```bash
 Perf
 | where TimeGenerated > now(-60m)
@@ -31,7 +31,7 @@ Perf
               and InstanceName != "Idle"
               and CounterValue > 50
 ```
-## //Find instances of total cpu being used above 70% over the last 20 minutes
+## 1.4 Find instances of total cpu being used above 70% over the last 20 minutes
 ```bash
 //defining our CPU threshold
 let CPUThreshold = 70;
@@ -50,7 +50,7 @@ Perf
               , CounterName, CounterValue
               , TimeGenerated;
 ```
-## Find top Processes, excluding _Total and Idle instances, there may be othe
+## 1.5 Find top Processes, excluding _Total and Idle instances, there may be othe
 ```bash
 //defining our CPU threshold
 let CPUThreshold = 70;
@@ -69,7 +69,7 @@ Perf
               , CounterValue, TimeGenerated;
 ```
 
-## Find CPU count for servers(s)
+## 1.6 Find CPU count for servers(s)
 ```bash
 //defining our CPU threshold
 let CPUThreshold = 70;
@@ -87,7 +87,7 @@ Perf
 | summarize CPUCount = dcount(InstanceName) by Computer;
 ```
 
-## Join all 3 datasets together
+## 1.7 Join all 3 datasets together
 ```bash
 FindCPU | join(TopCPU) on Computer 
 | join(TopProcess) on Computer
@@ -108,7 +108,7 @@ and avg_PercentProcessorUsed > 25 // only return processes that are using more t
                 , ProcessTime, TimeGenerated
 ```
 
-## Find High CPU Processes in Azure Log Analytics for Windows VM
+## 1.8 Find High CPU Processes in Azure Log Analytics for Windows VM
 ```bash
 let CPUThreshold = 70;
 let Time = 20m;
