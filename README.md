@@ -1,4 +1,4 @@
-# Azure Log Analytics
+# Azure Monitor Log Query Example
 
 ## Get Higih CPU
 ```bash
