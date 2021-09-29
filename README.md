@@ -1,5 +1,14 @@
 # Azure Monitor Log Query Example
 
+## References
+https://www.cloudsma.com/2018/07/cpu-processes-azure-log-analytics/<br>
+https://docs.microsoft.com/en-us/azure/azure-monitor/logs/examples#performance<br>
+https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/<br>
+
+## How-To
+1.x for Windows<br> 
+2.x for Linux<br>
+
 ## 1.1 Get a CPU count for your machines
 ```bash
 Perf
