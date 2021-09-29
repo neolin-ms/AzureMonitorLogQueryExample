@@ -164,3 +164,14 @@ and avg_PercentProcessorUsed > 25
                 , TotalCPU, Process
                 , ProcessTime, TimeGenerated
 ```
+
+## 2.1 Find High CPU on Process of VM 
+```bash
+Perf
+| where Computer == "mycentos77vm0928"
+        and ObjectName == "Process"
+        and CounterName == "Pct User Time"
+        and InstanceName == "stress"
+//| where TimeGenerated == todatetime('2021-09-29T04:02:07.283Z')
+| sort by TimeGenerated desc  
+```
