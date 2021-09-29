@@ -1,6 +1,6 @@
 # Azure Monitor Log Query Example
 
-## Get Higih CPU
+## Get a CPU count for your machines
 ```bash
 Perf
 | where TimeGenerated >= ago(1h)
@@ -11,7 +11,7 @@ Perf
 | summarize dcount(InstanceName) by Computer
 ```
 
-## Finding CPU Processes and High CPU
+## Find High CPU of Virtual Machines
 ```bash
 Perf
 | where CounterName == "% Processor Time"
@@ -20,7 +20,8 @@ Perf
               and InstanceName == "_Total"
 | distinct Computer
 ```
-## Check the Process
+
+## Check the Processor time of Virtual Machines
 ```bash
 Perf
 | where TimeGenerated > now(-60m)
@@ -30,35 +31,83 @@ Perf
               and InstanceName != "Idle"
               and CounterValue > 50
 ```
-
-## Dedicated time slot 
+## //Find instances of total cpu being used above 70% over the last 20 minutes
 ```bash
+//defining our CPU threshold
+let CPUThreshold = 70;
+//define time sample rate
+let Time = 20m;
+//define Count of processes to return
+let Count = 5;
+//Find instances of total cpu being used above 90% over the last 10 minutes
 Perf
-| where TimeGenerated == "9/28/2021, 5:32:46.003 PM"
-        and Computer == "myRedHat82VM0929"
-        and ObjectName == "Process"
-        and CounterName != "Pct Privileged Time"
-        and InstanceName != "_Total"
+| where TimeGenerated > now(-Time)
+              and ObjectName == "Processor"
+              and CounterName == "% Processor Time"
+              and InstanceName == "_Total"
+              and CounterValue > CPUThreshold
+| project Computer, ObjectName
+              , CounterName, CounterValue
+              , TimeGenerated;
+```
+## Find top Processes, excluding _Total and Idle instances, there may be othe
+```bash
+//defining our CPU threshold
+let CPUThreshold = 70;
+//define time sample rate
+let Time = 20m;
+//define Count of processes to return
+let Count = 5;
+// Find top Processes, excluding _Total and Idle instances, there may be other instances you want to exclude as well
+Perf
+| where TimeGenerated > now(-Time)
+               and CounterName == "% Processor Time"
+               and InstanceName != "_Total"
+               and InstanceName != "Idle"
+| project Computer, ObjectName
+              , CounterName, InstanceName
+              , CounterValue, TimeGenerated;
 ```
 
-## Dedicated Computer/Virtual Machine and check the process stress
+## Find CPU count for servers(s)
 ```bash
+//defining our CPU threshold
+let CPUThreshold = 70;
+//define time sample rate
+let Time = 20m;
+//define Count of processes to return
+let Count = 5;		  
+// Find CPU count for servers(s)
 Perf
-| where Computer == "mycentos77vm0928"
-        and ObjectName == "Process"
-        and InstanceName == "stress"
+| where TimeGenerated >= ago(1h)
+| where ObjectName == "Processor"
+              and CounterName == "% Processor Time"
+              and InstanceName!="_Total"
+| sort by InstanceName asc nulls first
+| summarize CPUCount = dcount(InstanceName) by Computer;
 ```
 
-## Dedicated Computer/Virtual Machine and Check the Process
+## Join all 3 datasets together
 ```bash
-Perf
-| where Computer == "mycentos77vm0928"
-        and ObjectName == "Process"
-        and CounterName == "Pct User Time"
-        and InstanceName == "stress"
-| where TimeGenerated == todatetime('2021-09-29T04:02:07.283Z')
-| sort by TimeGenerated desc  	
+FindCPU | join(TopCPU) on Computer 
+| join(TopProcess) on Computer
+| extend PercentProcessorUsed = CounterValue1 // CPUCount
+| summarize avg(PercentProcessorUsed) by Computer, ObjectName
+                  , CounterName, CPUCount 
+                  , TotalCPU=CounterValue //rename CounterValue to TotalCPU 
+                  , Process=ObjectName1 //rename ObjectName1 to Process 
+                  , ProcessTime=CounterName1 //rename CounterName1 to ProcessTime 
+                  , ProcessName=InstanceName //rename InstanceName to ProcessName 
+                  , TimeGenerated
+| where Process == "Process"
+and avg_PercentProcessorUsed > 25 // only return processes that are using more than 25%
+| top Count by avg_PercentProcessorUsed desc
+| project Computer, CPUCount
+                , ProcessName , avg_PercentProcessorUsed
+                , TotalCPU, Process
+                , ProcessTime, TimeGenerated
 ```
+
 ## Find High CPU Processes in Azure Log Analytics for Windows VM
 ```bash
 let CPUThreshold = 70;
