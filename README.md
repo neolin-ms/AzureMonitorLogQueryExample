@@ -189,6 +189,7 @@ Perf
 ```
 
 ## 3.2 Find the High CPUT of Process by Time range (between)
+```bash
 Perf
 | where Computer == "myCentOS77vm1004"
     and ObjectName == "Process"
@@ -196,3 +197,4 @@ Perf
     and InstanceName == "stress"
     and CounterValue != "0"
 | where TimeGenerated between (datetime("2021-10-04T14:30:00") .. datetime("2021-10-04T15:30:00")) 
+```
