@@ -198,3 +198,9 @@ Perf
     and CounterValue != "0"
 | where TimeGenerated between (datetime("2021-10-04T14:30:00") .. datetime("2021-10-04T15:30:00")) 
 ```
+## 4.1 Get the same number of records for each category
+Perf
+| Where TimeGenerated between (datetime(10/3/2021) .. datetime(10/5/2021))
+| where ObjectName in ("Processor Information", "Memory", "LogicalDisk")
+| partition by ObjectName (top 10 by Computer)
+| summarize count() by ObjectName
