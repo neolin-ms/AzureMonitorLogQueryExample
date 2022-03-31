@@ -204,3 +204,14 @@ Perf
 | where ObjectName in ("Processor Information", "Memory", "LogicalDisk")
 | partition by ObjectName (top 10 by Computer)
 | summarize count() by ObjectName
+
+## 5.1 Find the scale-down events of cluster-autoscaler
+### Azure Portal > Kernetes service > Monitor > Inisghts > Diagnostic settings > cluster-autoscaler
+AzureDiagnostics
+| where Category == "cluster-autoscaler"
+| where log_s !has "returning in-memory size"
+| where log_s !has "No candidates for scale down"
+| where log_s has "scale_down"
+| project TimeGenerated, log_s
+| sort by TimeGenerated desc
+
