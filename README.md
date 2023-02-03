@@ -198,15 +198,19 @@ Perf
     and CounterValue != "0"
 | where TimeGenerated between (datetime("2021-10-04T14:30:00") .. datetime("2021-10-04T15:30:00")) 
 ```
+
 ## 4.1 Get the same number of records for each category
+```bash
 Perf
 | Where TimeGenerated between (datetime(10/3/2021) .. datetime(10/5/2021))
 | where ObjectName in ("Processor Information", "Memory", "LogicalDisk")
 | partition by ObjectName (top 10 by Computer)
 | summarize count() by ObjectName
+```
 
 ## 5.1 Find the scale-down events of cluster-autoscaler
 ### Azure Portal > Kernetes service > Monitor > Inisghts > Diagnostic settings > cluster-autoscaler
+```bash
 AzureDiagnostics
 | where Category == "cluster-autoscaler"
 | where log_s !has "returning in-memory size"
@@ -214,4 +218,16 @@ AzureDiagnostics
 | where log_s has "scale_down"
 | project TimeGenerated, log_s
 | sort by TimeGenerated desc
+```
 
+## 6.1 Logging to Azure from an AKS Cluster
+### https://trstringer.com/native-azure-logging-aks/
+```bash
+ContainerLog
+| join kind = inner (KubePodInventory
+    | project ContainerID, PodName=Name, ControllerKind, ControllerName, Namespace
+    | distinct *
+) on ContainerID
+| project TimeGenerated, Namespace, PodName, LogEntry, LogEntry, ControllerKind, ControllerName
+| sort by TimeGenerated desc
+```
