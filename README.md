@@ -228,6 +228,6 @@ ContainerLog
     | project ContainerID, PodName=Name, ControllerKind, ControllerName, Namespace
     | distinct *
 ) on ContainerID
-| project TimeGenerated, Namespace, PodName, LogEntry, LogEntry, ControllerKind, ControllerName
+| project TimeGenerated, Namespace, PodName, LogEntry, LogEntry, LogEntrySource, ControllerKind, ControllerName
 | sort by TimeGenerated desc
 ```
