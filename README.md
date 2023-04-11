@@ -231,3 +231,84 @@ ContainerLog
 | project TimeGenerated, Namespace, PodName, LogEntry, LogEntry, LogEntrySource, ControllerKind, ControllerName
 | sort by TimeGenerated desc
 ```
+
+## 7.1 Find the CPU/Memory utilization of Top 10 on Perf of Container Insight
+###// 20230411 - cpuUsagePercent - part 1
+let startTimestamp = ago(5m);
+Perf
+| where TimeGenerated > startTimestamp
+| where ObjectName == "K8SContainer"
+| as T
+| where CounterName == "cpuUsageNanoCores"
+| summarize avgUsage=avg(CounterValue) by InstanceName
+| extend PodUid = tostring(split(InstanceName, '/')[9]), ContainerName = tostring(split(InstanceName, '/')[10])
+| project PodUid, ContainerName, avgUsage, InstanceName
+| join
+(
+  T
+  | where CounterName == "cpuLimitNanoCores"
+  | summarize avgUsage=avg(CounterValue) by InstanceName
+) on InstanceName
+| extend cpuUsagePercent = ( avgUsage / avgUsage1 ) * 100
+| join kind=leftouter KubePodInventory on PodUid
+| summarize by Name, ContainerName, round(cpuUsagePercent, 2)
+| top 10 by cpuUsagePercent desc  
+
+###//20240411 memoryUsagePercent - part 1
+let startTimestamp = ago(5m);
+Perf
+| where TimeGenerated > startTimestamp
+| where ObjectName == "K8SContainer"
+| as T
+| where CounterName == "memoryWorkingSetBytes"
+| summarize avgUsage=avg(CounterValue) by InstanceName
+| extend PodUid = tostring(split(InstanceName, '/')[9]), ContainerName = tostring(split(InstanceName, '/')[10])
+| project PodUid, ContainerName, avgUsage, InstanceName
+| join
+(
+  T
+  | where CounterName == "memoryLimitBytes"
+  | summarize avgUsage=avg(CounterValue) by InstanceName
+) on InstanceName
+| extend memoryUsagePercent = ( avgUsage / avgUsage1 ) * 100
+| join kind=leftouter KubePodInventory on PodUid
+| summarize by Name, ContainerName, round(memoryUsagePercent, 2)
+| top 10 by memoryUsagePercent desc 
+
+###//20230411 memoryUsagePercent - part 2
+Perf
+| where ObjectName == "K8SContainer"
+| as T
+| where CounterName == "memoryWorkingSetBytes"
+| summarize avgUsage=avg(CounterValue) by InstanceName, _ResourceId
+| extend PodUid = tostring(split(InstanceName, '/')[9]), ContainerName = tostring(split(InstanceName, '/')[10]), ClusterName = tostring(split(_ResourceId, '/')[8])
+| project PodUid, ContainerName, ClusterName, avgUsage, InstanceName
+| join
+(
+  T
+  | where CounterName == "memoryLimitBytes"
+  | summarize avgUsage=avg(CounterValue) by InstanceName
+) on InstanceName
+| extend memoryUsagePercent = ( avgUsage / avgUsage1 ) * 100
+| join kind=leftouter KubePodInventory on PodUid
+| summarize by Name, ContainerName, ClusterName, round(memoryUsagePercent, 2)
+| top 10 by memoryUsagePercent desc
+
+###//20230411 cpuUsagePercent - part 2
+Perf
+| where ObjectName == "K8SContainer"
+| as T
+| where CounterName == "cpuUsageNanoCores"
+| summarize avgUsage=avg(CounterValue) by InstanceName, _ResourceId
+| extend PodUid = tostring(split(InstanceName, '/')[9]), ContainerName = tostring(split(InstanceName, '/')[10]), ClusterName = tostring(split(_ResourceId, '/')[8])
+| project PodUid, ContainerName, ClusterName, avgUsage, InstanceName
+| join
+(
+  T
+  | where CounterName == "cpuLimitNanoCores"
+  | summarize avgUsage=avg(CounterValue) by InstanceName
+) on InstanceName
+| extend cpuUsagePercent = ( avgUsage / avgUsage1 ) * 100
+| join kind=leftouter KubePodInventory on PodUid
+| summarize by Name, ContainerName, ClusterName, round(cpuUsagePercent, 2)
+| top 10 by cpuUsagePercent desc 
