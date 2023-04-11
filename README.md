@@ -234,6 +234,7 @@ ContainerLog
 
 ## 7.1 Find the CPU/Memory utilization of Top 10 on Perf of Container Insight
 ###// 20230411 - cpuUsagePercent - part 1
+```bash
 let startTimestamp = ago(5m);
 Perf
 | where TimeGenerated > startTimestamp
@@ -253,8 +254,10 @@ Perf
 | join kind=leftouter KubePodInventory on PodUid
 | summarize by Name, ContainerName, round(cpuUsagePercent, 2)
 | top 10 by cpuUsagePercent desc  
+```
 
 ###//20240411 memoryUsagePercent - part 1
+```bash
 let startTimestamp = ago(5m);
 Perf
 | where TimeGenerated > startTimestamp
@@ -274,8 +277,10 @@ Perf
 | join kind=leftouter KubePodInventory on PodUid
 | summarize by Name, ContainerName, round(memoryUsagePercent, 2)
 | top 10 by memoryUsagePercent desc 
+```
 
 ###//20230411 memoryUsagePercent - part 2
+```bash
 Perf
 | where ObjectName == "K8SContainer"
 | as T
@@ -293,8 +298,10 @@ Perf
 | join kind=leftouter KubePodInventory on PodUid
 | summarize by Name, ContainerName, ClusterName, round(memoryUsagePercent, 2)
 | top 10 by memoryUsagePercent desc
+```
 
 ###//20230411 cpuUsagePercent - part 2
+```bash
 Perf
 | where ObjectName == "K8SContainer"
 | as T
@@ -312,3 +319,4 @@ Perf
 | join kind=leftouter KubePodInventory on PodUid
 | summarize by Name, ContainerName, ClusterName, round(cpuUsagePercent, 2)
 | top 10 by cpuUsagePercent desc 
+```
